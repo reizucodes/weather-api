@@ -27,3 +27,5 @@ Homestead.yaml
 Thumbs.db
 
 .envrc
+/storage/app/private/l5-swagger/
+/storage/api-docs/
