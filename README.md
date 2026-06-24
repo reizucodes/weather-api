@@ -25,6 +25,21 @@ php artisan serve
 
 ## Endpoints
 
+### `GET /`
+
+Returns API info and available endpoints.
+
+**Response:**
+```json
+{
+    "name": "WeatherApi",
+    "version": "1.0.0",
+    "endpoints": []
+}
+```
+
+---
+
 ### `GET /weather/{city}`
 
 Fetches real-time weather data from OpenWeatherMap.
