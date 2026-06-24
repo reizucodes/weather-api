@@ -9,6 +9,7 @@ use App\Exceptions\UpstreamUnavailableException;
 use App\Exceptions\WeatherServiceMisconfiguredException;
 use App\Services\WeatherService;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Attributes as OA;
 
 class WeatherController extends Controller
 {
@@ -19,6 +20,115 @@ class WeatherController extends Controller
         $this->service = $service;
     }
 
+    #[OA\Get(
+        path: '/weather/{city}',
+        operationId: 'getWeather',
+        summary: 'Get live weather for a city',
+        tags: ['Weather'],
+        parameters: [
+            new OA\Parameter(
+                name: 'city',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', example: 'Manila'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful weather response',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'city', type: 'string', example: 'Manila'),
+                        new OA\Property(property: 'temperature', type: 'number', format: 'float', example: 28.5),
+                        new OA\Property(property: 'description', type: 'string', example: 'light rain'),
+                        new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2026-06-24T08:00:00Z'),
+                        new OA\Property(property: 'source', type: 'string', enum: ['external'], example: 'external'),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid city name',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'invalid_city'),
+                                new OA\Property(property: 'message', type: 'string', example: 'City name invalid.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'City not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'city_not_found'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather data not found for requested city.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Weather service misconfigured',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'weather_service_misconfigured'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather service not configured correctly.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 502,
+                description: 'Upstream service unavailable',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'upstream_unavailable'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather service currently unavailable.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 504,
+                description: 'Upstream service timed out',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'upstream_timeout'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather service timed out. Please try again.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function show(string $city): JsonResponse
     {
         try {
@@ -39,6 +149,121 @@ class WeatherController extends Controller
         return response()->json($data);
     }
 
+    #[OA\Get(
+        path: '/weather/{city}/cached',
+        operationId: 'getCachedWeather',
+        summary: 'Get weather for a city, cached for 10 minutes',
+        tags: ['Weather'],
+        parameters: [
+            new OA\Parameter(
+                name: 'city',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', example: 'Manila'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful weather response',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'city', type: 'string', example: 'Manila'),
+                        new OA\Property(property: 'temperature', type: 'number', format: 'float', example: 28.5),
+                        new OA\Property(property: 'description', type: 'string', example: 'light rain'),
+                        new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2026-06-24T08:00:00Z'),
+                        new OA\Property(
+                            property: 'source',
+                            description: '"cache" when served from the 10-minute cache, "external" on a cache miss',
+                            type: 'string',
+                            enum: ['external', 'cache'],
+                            example: 'external',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid city name',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'invalid_city'),
+                                new OA\Property(property: 'message', type: 'string', example: 'City name invalid.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'City not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'city_not_found'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather data not found for requested city.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Weather service misconfigured',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'weather_service_misconfigured'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather service not configured correctly.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 502,
+                description: 'Upstream service unavailable',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'upstream_unavailable'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather service currently unavailable.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 504,
+                description: 'Upstream service timed out',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'error',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'upstream_timeout'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Weather service timed out. Please try again.'),
+                            ],
+                            type: 'object',
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function cached(string $city): JsonResponse
     {
         try {

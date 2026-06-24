@@ -124,3 +124,7 @@ The application follows a three-layer architecture:
 - **OpenWeatherMapClient** — handles all outbound HTTP calls to OpenWeatherMap and throws typed exceptions on failure
 
 Temperature is returned in **metric units (°C)**.
+
+## Bonus: API Documentation
+
+The API also ships with an interactive Swagger UI at `/api/docs` — not part of the requirements, but included for easier exploration. The raw OpenAPI JSON spec is at `/api/docs/api-docs.json`. Both are auto-generated from controller annotations and available while `php artisan serve` is running.
