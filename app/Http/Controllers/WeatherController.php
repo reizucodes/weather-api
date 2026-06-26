@@ -43,6 +43,8 @@ class WeatherController extends Controller
                         new OA\Property(property: 'temperature', type: 'number', format: 'float', example: 28.5),
                         new OA\Property(property: 'description', type: 'string', example: 'light rain'),
                         new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2026-06-24T08:00:00Z'),
+                        new OA\Property(property: 'local_time', description: 'City local time derived from upstream dt plus timezone offset seconds.', type: 'string', example: '2026-06-24T16:00:00'),
+                        new OA\Property(property: 'is_daytime', type: 'boolean', nullable: true, example: true),
                         new OA\Property(property: 'source', type: 'string', enum: ['external'], example: 'external'),
                     ],
                 ),
@@ -172,6 +174,8 @@ class WeatherController extends Controller
                         new OA\Property(property: 'temperature', type: 'number', format: 'float', example: 28.5),
                         new OA\Property(property: 'description', type: 'string', example: 'light rain'),
                         new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2026-06-24T08:00:00Z'),
+                        new OA\Property(property: 'local_time', description: 'City local time derived from upstream dt plus timezone offset seconds.', type: 'string', example: '2026-06-24T16:00:00'),
+                        new OA\Property(property: 'is_daytime', type: 'boolean', nullable: true, example: true),
                         new OA\Property(
                             property: 'source',
                             description: '"cache" when served from the 10-minute cache, "external" on a cache miss',

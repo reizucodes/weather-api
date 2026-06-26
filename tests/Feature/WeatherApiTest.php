@@ -22,8 +22,37 @@ class WeatherApiTest extends TestCase
                 'main' => ['temp' => 29.44],
                 'weather' => [['description' => 'overcast clouds']],
                 'dt' => 1782289250,
+                'timezone' => 28800,
+                'sys' => [
+                    'sunrise' => 1782260432,
+                    'sunset' => 1782305835,
+                ],
                 'cod' => 200,
             ], 200),
+        ]);
+    }
+
+    public function test_root_route_returns_home_view(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee(config('app.name'));
+    }
+
+    public function test_info_route_returns_metadata_json(): void
+    {
+        $response = $this->get('/info');
+
+        $response->assertOk();
+        $response->assertJson([
+            'name' => config('app.name'),
+            'version' => '1.0.0',
+            'author' => 'John Blaise Bueno',
+            'endpoints' => [
+                'GET /weather/{city}',
+                'GET /weather/{city}/cached',
+            ],
         ]);
     }
 
@@ -38,9 +67,13 @@ class WeatherApiTest extends TestCase
             'temperature',
             'description',
             'timestamp',
+            'local_time',
+            'is_daytime',
             'source',
         ]);
         $response->assertJsonFragment(['source' => 'external']);
+        $response->assertJsonFragment(['local_time' => '2026-06-24T16:20:50']);
+        $response->assertJsonFragment(['is_daytime' => true]);
     }
 
     public function test_cached_endpoint_returns_cache_on_second_call(): void

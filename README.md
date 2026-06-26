@@ -27,7 +27,11 @@ php artisan serve
 
 ### `GET /`
 
-Returns API info and available endpoints.
+Serves a simple weather UI.
+
+### `GET /info`
+
+Returns the API metadata JSON and available endpoints.
 
 **Response:**
 ```json
