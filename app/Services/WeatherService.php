@@ -55,13 +55,25 @@ class WeatherService
     private function format(array $data): array
     {
         $timestamp = gmdate('Y-m-d\TH:i:s\Z', $data['dt']);
+        $localTime = gmdate('Y-m-d\TH:i:s', $data['dt'] + ($data['timezone'] ?? 0));
 
         return [
             'city' => $data['name'] ?? null,
             'temperature' => $data['main']['temp'] ?? null,
             'description' => $data['weather'][0]['description'] ?? null,
             'timestamp' => $timestamp,
+            'local_time' => $localTime,
+            'is_daytime' => $this->isDaytime($data),
             'source' => 'external',
         ];
+    }
+
+    private function isDaytime(array $data): ?bool
+    {
+        if (! isset($data['dt'], $data['sys']['sunrise'], $data['sys']['sunset'])) {
+            return null;
+        }
+
+        return $data['dt'] >= $data['sys']['sunrise'] && $data['dt'] < $data['sys']['sunset'];
     }
 }
